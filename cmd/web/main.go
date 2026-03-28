@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -43,6 +44,7 @@ func initDB() *sql.DB {
 func connectToDB() *sql.DB {
 	counts := 0
 	dsn := os.Getenv("DSN")
+	fmt.Println(dsn)
 
 	for {
 		connection, err := openDB(dsn)
