@@ -37,11 +37,11 @@ func main() {
 
 	// set up application configuration
 	app := Config{
-		Session: session,
-		DB: db,
-		InfoLog: infoLog,
+		Session:  session,
+		DB:       db,
+		InfoLog:  infoLog,
 		ErrorLog: errorLog,
-		Wait: wg,
+		Wait:     wg,
 	}
 
 	// set up mail
@@ -52,20 +52,20 @@ func main() {
 
 func (app *Config) serve() {
 	srv := http.Server{
-		Addr: fmt.Sprintf(":%s", webport),
+		Addr:    fmt.Sprintf(":%s", webport),
 		Handler: app.routes(),
 	}
 
 	app.InfoLog.Println("Starting web server ...")
 	err := srv.ListenAndServe()
-	if err != nil{
+	if err != nil {
 		log.Panic(err)
 	}
 }
 
 func initDB() *sql.DB {
 	conn := connectToDB()
-	if conn == nil{
+	if conn == nil {
 		log.Panicln("can't connect to database")
 	}
 
@@ -79,9 +79,9 @@ func connectToDB() *sql.DB {
 
 	for {
 		connection, err := openDB(dsn)
-		if err != nil{
+		if err != nil {
 			log.Println("postgres database not yet ready yet ...")
-		}else{
+		} else {
 			log.Println("connected to database...")
 			return connection
 		}
@@ -96,23 +96,23 @@ func connectToDB() *sql.DB {
 	}
 }
 
-func openDB(dsn string) (*sql.DB, error){
+func openDB(dsn string) (*sql.DB, error) {
 	db, err := sql.Open("pgx", dsn)
-	if err != nil{
+	if err != nil {
 		log.Println("Error connecting to database")
 		return nil, err
 	}
 
 	err = db.Ping()
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
 	return db, nil
 }
 
-func initSession() *scs.SessionManager{
-	// session set up 
+func initSession() *scs.SessionManager {
+	// session set up
 	session := scs.New()
 	session.Store = redisstore.New(initRedis())
 	session.Lifetime = 24 * time.Hour
@@ -123,13 +123,13 @@ func initSession() *scs.SessionManager{
 	return session
 }
 
-func initRedis() *redis.Pool{
+func initRedis() *redis.Pool {
 	redisPool := &redis.Pool{
 		MaxIdle: 10,
-		Dial: func () (redis.Conn, error) {
+		Dial: func() (redis.Conn, error) {
 			return redis.Dial("tcp", os.Getenv("REDIS"))
 		},
-	}	
+	}
 
 	return redisPool
 }

@@ -14,7 +14,7 @@ func (app *Config) routes() http.Handler {
 	// set up middleware
 	mux.Use(middleware.Recoverer)
 
-	// define application endpoint 
+	// define application endpoint
 	mux.Get("/", app.HomePage)
 
 	return mux
