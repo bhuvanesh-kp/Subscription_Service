@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 	"subscription_service/data"
 )
 
@@ -151,22 +152,53 @@ func (app *Config) ActivateAccount(w http.ResponseWriter, r *http.Request) {
 
 	app.Session.Put(r.Context(), "flash", "Account activated successfully")
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
 
-	// generate an invoice
+func (app *Config) SubscriptionPlan(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
 
-	// send an email with attachments
+	planID, _ := strconv.Atoi(id)
 
-	// send an email with the invoice attached
+	plan, err := app.Models.Plan.GetOne(planID)
+	if err != nil {
+		app.Session.Put(r.Context(), "error", "Unable to find user plan")
+		http.Redirect(w, r, "/member/plan", http.StatusSeeOther)
+		return
+	}
 
-	// subscribe the user to an account
+	user, ok := app.Session.Get(r.Context(), "user").(data.User)
+	if !ok {
+		app.Session.Put(r.Context(), "error", "Login first")
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	app.Wait.Add(1)
+
+	go func() {
+		defer app.Wait.Done()
+
+		invoice, err := app.getInvoice(user, plan)
+		if err != nil {
+			app.ErrorChan <- err
+		}
+
+		msg := Message{
+			To: user.Email,
+			Subject: "Your Invoice",
+			Data: invoice,
+			Template: "invoice",
+		}
+
+		app.sendEmail(msg)
+	}()
+}
+
+func (app *Config) getInvoice(u data.User, p *data.Plan) (string, error) {
+	return strconv.Itoa(p.PlanAmount), nil
 }
 
 func (app *Config) ChooseSubscription(w http.ResponseWriter, r *http.Request) {
-	if !app.Session.Exists(r.Context(), "userID") {
-		app.Session.Put(r.Context(), "warning", "You must log in to see this page")
-		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
-		return
-	}
 
 	plans, err := app.Models.Plan.GetAll()
 	if err != nil {

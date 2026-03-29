@@ -40,7 +40,7 @@ type Message struct {
 // a function to listen for messages on the MailerChan
 func (app *Config) listenForMail() {
 	for {
-		select{
+		select {
 		case msg := <-app.Mailer.MailerChan:
 			go app.Mailer.sendMail(msg, app.Mailer.ErrorChan)
 		case err := <-app.Mailer.ErrorChan:
@@ -53,7 +53,7 @@ func (app *Config) listenForMail() {
 
 func (m *Mail) sendMail(msg Message, errorChan chan error) {
 	defer m.Wait.Done()
-	
+
 	if msg.Template == "" {
 		msg.Template = "mail"
 	}
@@ -132,7 +132,7 @@ func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
 
 	formattedMessage := tpl.String()
 	formattedMessage, err = m.inlineCSS(formattedMessage)
-	if err != nil{
+	if err != nil {
 		return "", err
 	}
 
