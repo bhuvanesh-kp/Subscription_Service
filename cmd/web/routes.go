@@ -55,7 +55,7 @@ func (app *Config) authRouter() http.Handler {
 	mux.Use(app.Auth)
 
 	mux.Get("/plans", app.ChooseSubscription)
-	mux.Get("/subscribe", app.SubscriptionPlan)
+	mux.Get("/subscribe", app.SubcribeToPlan)
 
 	return mux
 }
