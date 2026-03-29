@@ -2,8 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"log"
 	"subscription_service/data"
+	"log"
 	"sync"
 
 	"github.com/alexedwards/scs/v2"

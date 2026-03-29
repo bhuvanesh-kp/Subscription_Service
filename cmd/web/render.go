@@ -15,10 +15,11 @@ type TemplateData struct {
 	FloatMap      map[string]float64
 	Data          map[string]any
 	Flash         string
-	Waring        string
+	Warning       string
 	Error         string
 	Authenticated bool
 	Now           time.Time
+	// User *data.User
 }
 
 func (app *Config) render(w http.ResponseWriter, r *http.Request, t string, td *TemplateData) {
@@ -33,8 +34,8 @@ func (app *Config) render(w http.ResponseWriter, r *http.Request, t string, td *
 	var templateSlice []string
 	templateSlice = append(templateSlice, fmt.Sprintf("%s/%s", pathToTemplates, t))
 
-	for _, v := range partials {
-		templateSlice = append(templateSlice, v)
+	for _, x := range partials {
+		templateSlice = append(templateSlice, x)
 	}
 
 	if td == nil {
@@ -57,15 +58,15 @@ func (app *Config) render(w http.ResponseWriter, r *http.Request, t string, td *
 
 func (app *Config) AddDefaultData(td *TemplateData, r *http.Request) *TemplateData {
 	td.Flash = app.Session.PopString(r.Context(), "flash")
-	td.Waring = app.Session.PopString(r.Context(), "warning")
+	td.Warning = app.Session.PopString(r.Context(), "warning")
 	td.Error = app.Session.PopString(r.Context(), "error")
 	if app.IsAuthenticated(r) {
 		td.Authenticated = true
-		// implement logic to get more user details
+		// TODO - get more user information
 	}
-
 	td.Now = time.Now()
 
+	return td
 }
 
 func (app *Config) IsAuthenticated(r *http.Request) bool {

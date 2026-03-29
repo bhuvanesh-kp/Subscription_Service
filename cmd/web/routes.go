@@ -15,8 +15,9 @@ func (app *Config) routes() http.Handler {
 	mux.Use(middleware.Recoverer)
 	mux.Use(app.SessionLoad)
 
-	// define application endpoint
+	// define application routes
 	mux.Get("/", app.HomePage)
+
 	mux.Get("/login", app.LoginPage)
 	mux.Post("/login", app.PostLoginPage)
 	mux.Get("/logout", app.Logout)

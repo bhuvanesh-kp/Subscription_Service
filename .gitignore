@@ -1,4 +1,3 @@
 .vscode
 db-data
-.env
-myapp.exe
+Makefile.windows
