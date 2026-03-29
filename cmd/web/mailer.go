@@ -100,12 +100,10 @@ func (m *Mail) sendMail(msg Message, errorChan chan error) {
 }
 
 func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
-
 	return "", nil
 }
 
 func (m *Mail) buildPlainTextMessage(msg Message) (string, error) {
-
 	return "", nil
 }
 

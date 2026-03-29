@@ -38,7 +38,7 @@ func (app *Config) PostLoginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !validPassword{
+	if !validPassword {
 		app.Session.Put(r.Context(), "error", "Invalid credentials.")
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
@@ -75,7 +75,7 @@ func (app *Config) PostRegisterPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Config) ActivateAccount(w http.ResponseWriter, r *http.Request) {
-	// validate url 
+	// validate url
 
 	// generate an invoice
 
