@@ -1,33 +1,93 @@
 {{template "base" .}}
 
-{{define "content" }}
+{{define "content"}}
     <div class="container">
         <div class="row">
             <div class="col-md-8 offset-md-2">
-                <h1 class="mt-5">Plans</h1>
+                <h1 class="mt-5">Subscription Plans</h1>
                 <hr>
-                <table class="table table-compact table-striped">
-                    <thead>
+
+                {{if .User}}
+                    {{if .User.Plan}}
+                        <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                                class="bi bi-check-circle-fill flex-shrink-0 me-2" viewBox="0 0 16 16">
+                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0
+                                    0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06
+                                    1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75
+                                    0 0 0-.01-1.05z"/>
+                            </svg>
+                            <div>
+                                You are currently on the <strong>{{.User.Plan.PlanName}}</strong> plan.
+                                Select a higher plan to <strong>upgrade</strong> or a lower plan to <strong>downgrade</strong>.
+                            </div>
+                        </div>
+                    {{else}}
+                        <div class="alert alert-secondary d-flex align-items-center mb-4" role="alert">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                                class="bi bi-info-circle-fill flex-shrink-0 me-2" viewBox="0 0 16 16">
+                                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1
+                                    4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703
+                                    0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381
+                                    2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+                            </svg>
+                            <div>
+                                You don't have an active subscription yet. Choose a plan below to get started.
+                            </div>
+                        </div>
+                    {{end}}
+                {{end}}
+
+                {{$currentPlanID := 0}}
+                {{if and .User .User.Plan}}
+                    {{$currentPlanID = .User.Plan.ID}}
+                {{end}}
+
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
                         <tr>
                             <th>Plan</th>
-                            <th class="text-center">Price</th>
-                            <th class="text-center">Select</th>
+                            <th class="text-center">Price / month</th>
+                            <th class="text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {{range index .Data "plans"}}
-                            <tr>
-                                <td>{{.PlanName}}</td>
-                                <td class="text-center">{{.PlanAmountFormatted}}/month</td>
+                            <tr {{if eq .ID $currentPlanID}}class="table-success"{{end}}>
+                                <td>
+                                    <strong>{{.PlanName}}</strong>
+                                    {{if eq .ID $currentPlanID}}
+                                        <span class="badge bg-success ms-2">Current Plan</span>
+                                    {{else if gt .ID $currentPlanID}}
+                                        {{if ne $currentPlanID 0}}
+                                            <span class="badge bg-primary ms-2">Upgrade</span>
+                                        {{end}}
+                                    {{else}}
+                                        {{if ne $currentPlanID 0}}
+                                            <span class="badge bg-secondary ms-2">Downgrade</span>
+                                        {{end}}
+                                    {{end}}
+                                </td>
+                                <td class="text-center">{{.PlanAmountFormatted}}</td>
                                 <td class="text-center">
-                                    <a class="btn btn-primary btn-sm" href="#!" onclick="selectPlan({{.ID}}, '{{.PlanName}}')">Select</a>
+                                    {{if eq $currentPlanID 0}}
+                                        <a class="btn btn-primary btn-sm" href="#!"
+                                            onclick="selectPlan({{.ID}}, '{{.PlanName}}', 'new', 0)">Subscribe</a>
+                                    {{else if eq .ID $currentPlanID}}
+                                        <button class="btn btn-success btn-sm" disabled>Current Plan</button>
+                                    {{else if gt .ID $currentPlanID}}
+                                        <a class="btn btn-primary btn-sm" href="#!"
+                                            onclick="selectPlan({{.ID}}, '{{.PlanName}}', 'upgrade', {{$currentPlanID}})">Upgrade</a>
+                                    {{else}}
+                                        <a class="btn btn-outline-secondary btn-sm" href="#!"
+                                            onclick="selectPlan({{.ID}}, '{{.PlanName}}', 'downgrade', {{$currentPlanID}})">Downgrade</a>
+                                    {{end}}
                                 </td>
                             </tr>
                         {{end}}
                     </tbody>
                 </table>
             </div>
-
         </div>
     </div>
 {{end}}
@@ -35,17 +95,45 @@
 {{define "js"}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.14/dist/sweetalert2.all.min.js"></script>
     <script>
-        function selectPlan(x, plan) {
+        function selectPlan(planID, planName, action, currentPlanID) {
+            let title, html, confirmText, icon, confirmColor;
+
+            if (action === 'new') {
+                title = 'Subscribe to ' + planName;
+                html = 'You are about to subscribe to the <strong>' + planName + '</strong> plan.<br>'
+                     + 'An invoice and user manual will be emailed to you.';
+                confirmText = 'Subscribe';
+                icon = 'question';
+                confirmColor = '#0d6efd';
+            } else if (action === 'upgrade') {
+                title = 'Upgrade Plan';
+                html = 'You are upgrading to the <strong>' + planName + '</strong> plan.<br>'
+                     + 'Your new rate takes effect immediately and a new invoice will be sent.';
+                confirmText = 'Yes, Upgrade';
+                icon = 'success';
+                confirmColor = '#198754';
+            } else {
+                title = 'Downgrade Plan';
+                html = 'You are downgrading to the <strong>' + planName + '</strong> plan.<br>'
+                     + 'Your new lower rate takes effect immediately.';
+                confirmText = 'Yes, Downgrade';
+                icon = 'warning';
+                confirmColor = '#fd7e14';
+            }
+
             Swal.fire({
-                title: 'Subscribe',
-                html: 'Are you sure you want to subscribe to the ' + plan + '?',
+                title: title,
+                html: html,
+                icon: icon,
                 showCancelButton: true,
-                confirmButtonText: 'Subscribe',
+                confirmButtonColor: confirmColor,
+                cancelButtonText: 'Cancel',
+                confirmButtonText: confirmText,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = '/subscribe?id=' + x; 
+                    window.location.href = '/members/subscribe?id=' + planID;
                 }
-            })
+            });
         }
     </script>
 {{end}}

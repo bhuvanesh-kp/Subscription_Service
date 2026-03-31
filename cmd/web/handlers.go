@@ -245,8 +245,16 @@ func (app *Config) SubcribeToPlan(w http.ResponseWriter, r *http.Request) {
 
 	app.Session.Put(r.Context(), "user", u)
 
-	// redirect
-	app.Session.Put(r.Context(), "flash", "Subscribed!")
+	// set a contextual flash message depending on whether this is a new subscription or a plan change
+	flashMsg := "Successfully subscribed to the " + plan.PlanName + " plan!"
+	if user.Plan != nil {
+		if plan.PlanAmount > user.Plan.PlanAmount {
+			flashMsg = "Plan upgraded to " + plan.PlanName + " successfully!"
+		} else {
+			flashMsg = "Plan changed to " + plan.PlanName + " successfully!"
+		}
+	}
+	app.Session.Put(r.Context(), "flash", flashMsg)
 	http.Redirect(w, r, "/members/plans", http.StatusSeeOther)
 }
 
